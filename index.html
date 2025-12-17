@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crioser Solutions - Gestión de Servicios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #f8f9fa;
+            --background-color: #343a40;
+            --form-bg: #ffffff;
+            --text-dark: #212529;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --edit-color: #ffc107;
+            --border-radius: 10px;
+            --main-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background-color: var(--background-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 1. SECCIONES SEPARADAS */
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            background: var(--form-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--main-shadow);
+            border: 1px solid #ddd;
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            color: var(--background-color);
+        }
+
+        /* GRID DE TARJETAS */
+        #ordenes-activas {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .orden-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border-left: 5px solid var(--primary-color);
+            box-shadow: var(--main-shadow);
+            position: relative;
+        }
+
+        .os-id { font-weight: 800; color: var(--primary-color); }
+        .programado { color: var(--danger-color); font-weight: 600; font-size: 0.9em; }
+
+        .acciones {
+            margin-top: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button, .btn-link {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            font-size: 0.85em;
+            flex: 1;
+        }
+
+        .btn-wa { background-color: #25d366; color: white; }
+        .btn-edit { background-color: var(--edit-color); color: #000; }
+        .btn-done { background-color: var(--success-color); color: white; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            text-transform: uppercase;
+        }
+
+        .mensaje-vacio { text-align: center; padding: 40px; background: #eee; border-radius: 10px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Crioser Solutions</h1>
+        <p>Panel de Gestión Operativa</p>
+    </header>
+
+    <div class="container">
+        <section class="dashboard-section">
+            <h2>📋 Órdenes de Servicio Activas</h2>
+            <div id="ordenes-activas"></div>
+            <p id="mensaje-vacio" class="mensaje-vacio" style="display:none;">No hay servicios pendientes.</p>
+        </section>
+
+        <hr style="margin: 50px 0; border: 0; border-top: 1px solid #ccc;">
+
+        <section class="form-section" id="modulo-registro">
+            <h2 id="form-title">➕ Agendar Nuevo Servicio</h2>
+            <form id="form-servicio">
+                <input type="hidden" id="edit-id"> <div class="form-group">
+                    <label>Cliente:</label>
+                    <input type="text" id="cliente" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp (Ej: 573001234567):</label>
+                    <input type="text" id="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección:</label>
+                    <input type="text" id="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción del Servicio:</label>
+                    <textarea id="servicio" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Fecha y Hora:</label>
+                    <input type="datetime-local" id="fecha" required>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-guardar">Generar Orden</button>
+                <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" style="display:none; background:#6c757d; color:white; margin-top:10px;">Cancelar Edición</button>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        const form = document.getElementById('form-servicio');
+        const ordenesContainer = document.getElementById('ordenes-activas');
+        let ordenes = JSON.parse(localStorage.getItem('ordenes')) || [];
+        let nextId = localStorage.getItem('nextId') ? parseInt(localStorage.getItem('nextId')) : 1;
+
+        function guardarDatos() {
+            localStorage.setItem('ordenes', JSON.stringify(ordenes));
+            localStorage.setItem('nextId', nextId);
+        }
+
+        function renderizarOrdenes() {
+            ordenesContainer.innerHTML = '';
+            if (ordenes.length === 0) {
+                document.getElementById('mensaje-vacio').style.display = 'block';
+                return;
+            }
+            document.getElementById('mensaje-vacio').style.display = 'none';
+
+            ordenes.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            ordenes.forEach(orden => {
+                const card = document.createElement('div');
+                card.className = 'orden-card';
+                card.innerHTML = `
+                    <div class="os-id">OS-${String(orden.id).padStart(4, '0')}</div>
+                    <div class="programado">📅 ${new Date(orden.fecha).toLocaleString()}</div>
+                    <p><strong>Cliente:</strong> ${orden.cliente}</p>
+                    <p><strong>Servicio:</strong> ${orden.servicio}</p>
+                    <p><strong>📍</strong> ${orden.direccion}</p>
+                    <div class="acciones">
+                        <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn-wa">Business</a>
+                        <button onclick="cargarEdicion(${orden.id})" class="btn-edit">Editar</button>
+                        <button onclick="culminarServicio(${orden.id})" class="btn-done">Culminar</button>
+                    </div>
+                `;
+                ordenesContainer.appendChild(card);
+            });
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            
+            const datos = {
+                cliente: document.getElementById('cliente').value,
+                telefono: document.getElementById('telefono').value,
+                direccion: document.getElementById('direccion').value,
+                servicio: document.getElementById('servicio').value,
+                fecha: document.getElementById('fecha').value
+            };
+
+            if (editId) {
+                // MODO EDICIÓN
+                const index = ordenes.findIndex(o => o.id == editId);
+                ordenes[index] = { ...ordenes[index], ...datos };
+                alert("Orden actualizada con éxito");
+            } else {
+                // MODO NUEVO
+                const nuevaOrden = { id: nextId++, ...datos };
+                ordenes.push(nuevaOrden);
+                alert("Nueva orden generada");
+            }
+
+            guardarDatos();
+            renderizarOrdenes();
+            cancelarEdicion();
+        });
+
+        window.cargarEdicion = function(id) {
+            const orden = ordenes.find(o => o.id === id);
+            document.getElementById('edit-id').value = orden.id;
+            document.getElementById('cliente').value = orden.cliente;
+            document.getElementById('telefono').value = orden.telefono;
+            document.getElementById('direccion').value = orden.direccion;
+            document.getElementById('servicio').value = orden.servicio;
+            document.getElementById('fecha').value = orden.fecha;
+
+            document.getElementById('form-title').innerText = `📝 Editando Orden OS-${String(id).padStart(4, '0')}`;
+            document.getElementById('btn-guardar').innerText = "Actualizar Orden";
+            document.getElementById('btn-cancelar').style.display = "block";
+            
+            document.getElementById('modulo-registro').scrollIntoView({behavior: 'smooth'});
+        };
+
+        window.cancelarEdicion = function() {
+            form.reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('form-title').innerText = "➕ Agendar Nuevo Servicio";
+            document.getElementById('btn-guardar').innerText = "Generar Orden";
+            document.getElementById('btn-cancelar').style.display = "none";
+        };
+
+        window.culminarServicio = function(id) {
+            if (confirm("¿Marcar como culminado y eliminar de la lista?")) {
+                ordenes = ordenes.filter(o => o.id !== id);
+                guardarDatos();
+                renderizarOrdenes();
+            }
+        };
+
+        renderizarOrdenes();
+    </script>
+</body>
+</html>
