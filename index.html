@@ -15,6 +15,7 @@
             --success-color: #28a745;
             --danger-color: #dc3545;
             --edit-color: #ffc107;
+            --confirm-color: #075e54; /* Color profesional para WhatsApp */
             --border-radius: 10px;
             --main-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
@@ -98,6 +99,7 @@
         }
 
         .btn-wa { background-color: #25d366; color: white; }
+        .btn-confirm { background-color: var(--confirm-color); color: white; } /* Estilo nuevo */
         .btn-edit { background-color: var(--edit-color); color: #000; }
         .btn-done { background-color: var(--success-color); color: white; }
 
@@ -193,6 +195,7 @@
                     <p><strong>Servicio:</strong> ${orden.servicio}</p>
                     <p><strong>📍</strong> ${orden.direccion}</p>
                     <div class="acciones">
+                        <button onclick="enviarConfirmacion(${orden.id})" class="btn-confirm">Enviar Confirmación</button>
                         <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn-wa">Business</a>
                         <button onclick="cargarEdicion(${orden.id})" class="btn-edit">Editar</button>
                         <button onclick="culminarServicio(${orden.id})" class="btn-done">Culminar</button>
@@ -201,6 +204,21 @@
                 ordenesContainer.appendChild(card);
             });
         }
+
+        // Nueva función para enviar confirmación profesional
+        window.enviarConfirmacion = function(id) {
+            const orden = ordenes.find(o => o.id === id);
+            if (!orden) return;
+
+            const fechaObj = new Date(orden.fecha);
+            const fechaFormateada = fechaObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const horaFormateada = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+            const mensaje = `¡Hola ${orden.cliente}! Queda confirmado su servicio el día ${fechaFormateada} a las ${horaFormateada}. ¡Gracias por confiar en Crioser Solutions!`;
+            
+            const url = `https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        };
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -215,12 +233,10 @@
             };
 
             if (editId) {
-                // MODO EDICIÓN
                 const index = ordenes.findIndex(o => o.id == editId);
                 ordenes[index] = { ...ordenes[index], ...datos };
                 alert("Orden actualizada con éxito");
             } else {
-                // MODO NUEVO
                 const nuevaOrden = { id: nextId++, ...datos };
                 ordenes.push(nuevaOrden);
                 alert("Nueva orden generada");
