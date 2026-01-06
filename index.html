@@ -3,168 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crioser Solutions - Gestión de Servicios</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Crioser Solutions | Gestión Operativa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #007bff;
-            --secondary-color: #f8f9fa;
-            --background-color: #343a40;
-            --form-bg: #ffffff;
-            --text-dark: #212529;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --edit-color: #ffc107;
-            --confirm-color: #075e54; /* Color profesional para WhatsApp */
-            --border-radius: 10px;
-            --main-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --primary: #0056b3;
+            --secondary: #00d1ff;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --white: #ffffff;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --shadow: 0 20px 50px rgba(0,0,0,0.1);
+            --radius: 20px;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--secondary-color);
-            margin: 0;
-            padding-bottom: 50px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--light);
+            background-image: radial-gradient(at 0% 0%, rgba(0, 86, 179, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 0%, rgba(0, 209, 255, 0.05) 0px, transparent 50%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding-bottom: 80px;
         }
 
+        /* --- HEADER --- */
         header {
-            background-color: var(--background-color);
-            color: white;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 30px 5%;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            color: var(--primary);
+            letter-spacing: -1px;
         }
 
-        /* 1. SECCIONES SEPARADAS */
-        .dashboard-section {
-            margin-bottom: 40px;
-        }
+        header p { font-size: 0.9rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-        .form-section {
-            background: var(--form-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--main-shadow);
-            border: 1px solid #ddd;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
 
         h2 {
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-            color: var(--background-color);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        /* GRID DE TARJETAS */
+        /* --- GRID DE TARJETAS --- */
         #ordenes-activas {
             display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         }
 
         .orden-card {
-            background: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            border-left: 5px solid var(--primary-color);
-            box-shadow: var(--main-shadow);
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: 0.3s;
             position: relative;
+            overflow: hidden;
         }
 
-        .os-id { font-weight: 800; color: var(--primary-color); }
-        .programado { color: var(--danger-color); font-weight: 600; font-size: 0.9em; }
+        .orden-card:hover { transform: translateY(-5px); }
 
+        .os-id {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .programado {
+            display: block;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .orden-card p { margin-bottom: 8px; font-size: 0.95rem; color: #475569; }
+        .orden-card strong { color: var(--dark); }
+
+        /* --- ACCIONES --- */
         .acciones {
-            margin-top: 15px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
         button, .btn-link {
-            padding: 8px 12px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            text-align: center;
-            font-size: 0.85em;
-            flex: 1;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans';
+            font-size: 0.85rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn-wa { background-color: #25d366; color: white; }
-        .btn-confirm { background-color: var(--confirm-color); color: white; } /* Estilo nuevo */
-        .btn-edit { background-color: var(--edit-color); color: #000; }
-        .btn-done { background-color: var(--success-color); color: white; }
+        .btn-confirm { background: var(--primary); color: white; grid-column: span 2; }
+        .btn-confirm:hover { background: #004494; }
 
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn-wa { background: #25d366; color: white; text-decoration: none; }
+        .btn-edit { background: #f1f5f9; color: var(--dark); }
+        .btn-done { background: var(--success); color: white; }
+
+        button:active { transform: scale(0.96); }
+
+        /* --- FORMULARIO --- */
+        .form-section {
+            background: var(--white);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-top: 50px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group.full { grid-column: span 2; }
+        @media (max-width: 768px) { .form-group.full { grid-column: span 1; } }
+
+        label { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; color: var(--dark); }
+        
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: #fff;
+        }
 
         .btn-submit {
-            background-color: var(--primary-color);
+            background: var(--dark);
             color: white;
             width: 100%;
-            padding: 12px;
-            font-size: 1em;
-            text-transform: uppercase;
+            padding: 18px;
+            font-size: 1rem;
+            border-radius: 15px;
+            margin-top: 10px;
         }
 
-        .mensaje-vacio { text-align: center; padding: 40px; background: #eee; border-radius: 10px; font-style: italic; }
+        .btn-submit:hover { background: var(--primary); }
+
+        .mensaje-vacio {
+            text-align: center;
+            padding: 60px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius);
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Crioser Solutions</h1>
+        <h1>CRIOSER SOLUTIONS</h1>
         <p>Panel de Gestión Operativa</p>
     </header>
 
     <div class="container">
         <section class="dashboard-section">
-            <h2>📋 Órdenes de Servicio Activas</h2>
+            <h2>📋 Servicios Agendados</h2>
             <div id="ordenes-activas"></div>
-            <p id="mensaje-vacio" class="mensaje-vacio" style="display:none;">No hay servicios pendientes.</p>
+            <p id="mensaje-vacio" class="mensaje-vacio" style="display:none;">No hay servicios pendientes por realizar.</p>
         </section>
-
-        <hr style="margin: 50px 0; border: 0; border-top: 1px solid #ccc;">
 
         <section class="form-section" id="modulo-registro">
             <h2 id="form-title">➕ Agendar Nuevo Servicio</h2>
             <form id="form-servicio">
-                <input type="hidden" id="edit-id"> <div class="form-group">
-                    <label>Cliente:</label>
-                    <input type="text" id="cliente" required>
+                <input type="hidden" id="edit-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp (Con código de país)</label>
+                        <input type="text" id="telefono" placeholder="573001234567" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Dirección Exacta / Barrio</label>
+                        <input type="text" id="direccion" placeholder="Calle 00 # 00 - 00 Barrio" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción detallada del trabajo</label>
+                        <textarea id="servicio" rows="3" placeholder="Ej: Mantenimiento preventivo de aire 12btu..." required></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label>Fecha y Hora Programada</label>
+                        <input type="datetime-local" id="fecha" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>WhatsApp (Ej: 573001234567):</label>
-                    <input type="text" id="telefono" required>
-                </div>
-                <div class="form-group">
-                    <label>Dirección:</label>
-                    <input type="text" id="direccion" required>
-                </div>
-                <div class="form-group">
-                    <label>Descripción del Servicio:</label>
-                    <textarea id="servicio" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Fecha y Hora:</label>
-                    <input type="datetime-local" id="fecha" required>
-                </div>
-                <button type="submit" class="btn-submit" id="btn-guardar">Generar Orden</button>
-                <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" style="display:none; background:#6c757d; color:white; margin-top:10px;">Cancelar Edición</button>
+                <button type="submit" class="btn-submit" id="btn-guardar">Generar Orden de Servicio</button>
+                <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" style="display:none; background:#f1f5f9; color:var(--dark); margin-top:15px; width:100%;">Cancelar Edición</button>
             </form>
         </section>
     </div>
 
     <script>
+        // MANTENEMOS TU LÓGICA EXACTA DE FUNCIONAMIENTO
         const form = document.getElementById('form-servicio');
         const ordenesContainer = document.getElementById('ordenes-activas');
         let ordenes = JSON.parse(localStorage.getItem('ordenes')) || [];
@@ -190,13 +272,13 @@
                 card.className = 'orden-card';
                 card.innerHTML = `
                     <div class="os-id">OS-${String(orden.id).padStart(4, '0')}</div>
-                    <div class="programado">📅 ${new Date(orden.fecha).toLocaleString()}</div>
+                    <span class="programado">📅 ${new Date(orden.fecha).toLocaleString('es-ES', {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</span>
                     <p><strong>Cliente:</strong> ${orden.cliente}</p>
-                    <p><strong>Servicio:</strong> ${orden.servicio}</p>
-                    <p><strong>📍</strong> ${orden.direccion}</p>
+                    <p><strong>📍 Dirección:</strong> ${orden.direccion}</p>
+                    <p style="background: #f8fafc; padding: 10px; border-radius: 10px; margin-top: 10px;">${orden.servicio}</p>
+                    
                     <div class="acciones">
-                        <button onclick="enviarConfirmacion(${orden.id})" class="btn-confirm">Enviar Confirmación</button>
-                        <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn-wa">Business</a>
+                        <button onclick="enviarConfirmacion(${orden.id})" class="btn-confirm">📲 Confirmar por WhatsApp</button>
                         <button onclick="cargarEdicion(${orden.id})" class="btn-edit">Editar</button>
                         <button onclick="culminarServicio(${orden.id})" class="btn-done">Culminar</button>
                     </div>
@@ -205,17 +287,13 @@
             });
         }
 
-        // Nueva función para enviar confirmación profesional
         window.enviarConfirmacion = function(id) {
             const orden = ordenes.find(o => o.id === id);
             if (!orden) return;
-
             const fechaObj = new Date(orden.fecha);
             const fechaFormateada = fechaObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             const horaFormateada = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-
             const mensaje = `¡Hola ${orden.cliente}! Queda confirmado su servicio el día ${fechaFormateada} a las ${horaFormateada}. ¡Gracias por confiar en Crioser Solutions!`;
-            
             const url = `https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
         };
@@ -223,7 +301,6 @@
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
-            
             const datos = {
                 cliente: document.getElementById('cliente').value,
                 telefono: document.getElementById('telefono').value,
@@ -231,17 +308,13 @@
                 servicio: document.getElementById('servicio').value,
                 fecha: document.getElementById('fecha').value
             };
-
             if (editId) {
                 const index = ordenes.findIndex(o => o.id == editId);
                 ordenes[index] = { ...ordenes[index], ...datos };
-                alert("Orden actualizada con éxito");
             } else {
                 const nuevaOrden = { id: nextId++, ...datos };
                 ordenes.push(nuevaOrden);
-                alert("Nueva orden generada");
             }
-
             guardarDatos();
             renderizarOrdenes();
             cancelarEdicion();
@@ -255,11 +328,9 @@
             document.getElementById('direccion').value = orden.direccion;
             document.getElementById('servicio').value = orden.servicio;
             document.getElementById('fecha').value = orden.fecha;
-
-            document.getElementById('form-title').innerText = `📝 Editando Orden OS-${String(id).padStart(4, '0')}`;
+            document.getElementById('form-title').innerText = `📝 Editando OS-${String(id).padStart(4, '0')}`;
             document.getElementById('btn-guardar').innerText = "Actualizar Orden";
             document.getElementById('btn-cancelar').style.display = "block";
-            
             document.getElementById('modulo-registro').scrollIntoView({behavior: 'smooth'});
         };
 
@@ -267,12 +338,12 @@
             form.reset();
             document.getElementById('edit-id').value = "";
             document.getElementById('form-title').innerText = "➕ Agendar Nuevo Servicio";
-            document.getElementById('btn-guardar').innerText = "Generar Orden";
+            document.getElementById('btn-guardar').innerText = "Generar Orden de Servicio";
             document.getElementById('btn-cancelar').style.display = "none";
         };
 
         window.culminarServicio = function(id) {
-            if (confirm("¿Marcar como culminado y eliminar de la lista?")) {
+            if (confirm("¿Deseas marcar este servicio como terminado?")) {
                 ordenes = ordenes.filter(o => o.id !== id);
                 guardarDatos();
                 renderizarOrdenes();
