@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crioser Solutions | Gestión Operativa</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <link rel="icon" type="image/png" href="Logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
     <style>
         :root {
             --primary: #0056b3;
@@ -35,7 +37,6 @@
             padding-bottom: 100px;
         }
 
-        /* --- Estilo del Header --- */
         header {
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -69,11 +70,11 @@
             gap: 15px;
         }
 
-        /* --- Tarjetas Dinámicas --- */
-        #ordenes-activas {
+        #ordenes-activas, #ordenes-futuras {
             display: grid;
             gap: 25px;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            margin-bottom: 50px;
         }
 
         .orden-card {
@@ -110,6 +111,16 @@
             font-size: 0.85rem;
         }
 
+        .tag-mantenimiento {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
         .programado {
             color: var(--danger);
             font-weight: 700;
@@ -122,17 +133,16 @@
         .info-row { display: flex; gap: 12px; font-size: 0.95rem; line-height: 1.5; }
         .info-row i { color: var(--primary); margin-top: 4px; width: 16px; }
 
-        /* --- Botones Estilo Premium --- */
         .acciones {
             margin-top: 10px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn {
-            padding: 14px;
-            border-radius: 16px;
+            padding: 12px;
+            border-radius: 14px;
             border: none;
             cursor: pointer;
             font-weight: 700;
@@ -140,39 +150,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             transition: 0.3s;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        .btn-confirm {
-            background: var(--dark);
-            color: white;
-            grid-column: span 2;
-        }
+        .btn-confirm { background: var(--dark); color: white; }
+        .btn-wa { background: #e8faf0; color: var(--whatsapp); border: 1px solid rgba(37, 211, 102, 0.1); }
+        .btn-tecnico { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; grid-column: span 2; }
+        .btn-reminder { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; grid-column: span 2; }
+        .btn-edit { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+        .btn-done { background: var(--success); color: white; grid-column: span 2; }
 
-        .btn-wa {
-            background: #e8faf0;
-            color: var(--whatsapp);
-            border: 1px solid rgba(37, 211, 102, 0.2);
-        }
+        .btn:hover { filter: brightness(0.95); transform: translateY(-2px); }
 
-        .btn-edit {
-            background: #f8fafc;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-        }
-
-        .btn-done {
-            background: var(--success);
-            color: white;
-            grid-column: span 2;
-        }
-
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-
-        /* --- Formulario --- */
         .form-section {
             background: var(--white);
             padding: 45px;
@@ -183,7 +175,7 @@
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 16px;
             border: 2px solid #f1f5f9;
@@ -194,7 +186,7 @@
             background: #f8fafc;
         }
 
-        input:focus { border-color: var(--primary); background: white; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); background: white; outline: none; }
 
         .btn-submit {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -207,9 +199,12 @@
             box-shadow: 0 10px 20px rgba(0, 86, 179, 0.2);
         }
 
+        .tab-section { margin-top: 40px; border-top: 2px solid #e2e8f0; padding-top: 40px; }
+
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
-            .orden-card { padding: 20px; }
+            .acciones { grid-template-columns: 1fr; }
+            .btn-confirm, .btn-wa { grid-column: span 1; }
         }
     </style>
 </head>
@@ -222,12 +217,16 @@
 
     <div class="container">
         <section>
-            <h2><i class="fas fa-calendar-check"></i> Servicios Agendados</h2>
+            <h2><i class="fas fa-calendar-day"></i> Servicios del Mes Actual</h2>
             <div id="ordenes-activas"></div>
-            <div id="mensaje-vacio" style="display:none; text-align:center; padding:80px; background:white; border-radius:30px; color:#94a3b8;">
-                <i class="fas fa-inbox fa-3x" style="margin-bottom:20px; opacity:0.3;"></i>
-                <p>No hay servicios pendientes en la agenda.</p>
+            <div id="mensaje-vacio" style="display:none; text-align:center; padding:60px; background:white; border-radius:30px; color:#94a3b8;">
+                <p>No hay servicios agendados para este mes.</p>
             </div>
+        </section>
+
+        <section class="tab-section">
+            <h2><i class="fas fa-history"></i> Programados a Futuro (Mantenimientos)</h2>
+            <div id="ordenes-futuras"></div>
         </section>
 
         <section class="form-section" id="modulo-registro">
@@ -242,6 +241,13 @@
                     <div>
                         <label style="font-weight:700; display:block; margin-bottom:10px;">Número de WhatsApp</label>
                         <input type="text" id="telefono" placeholder="Ej: 57323..." required>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:700; display:block; margin-bottom:10px;">Tipo de Servicio</label>
+                        <select id="tipo-servicio" required>
+                            <option value="mantenimiento">Mantenimiento Preventivo</option>
+                            <option value="otro">Otro Servicio (Reparación/Instalación)</option>
+                        </select>
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="font-weight:700; display:block; margin-bottom:10px;">Dirección del Servicio</label>
@@ -265,7 +271,8 @@
 
     <script>
         const form = document.getElementById('form-servicio');
-        const ordenesContainer = document.getElementById('ordenes-activas');
+        const containerActual = document.getElementById('ordenes-activas');
+        const containerFuturo = document.getElementById('ordenes-futuras');
         let ordenes = JSON.parse(localStorage.getItem('ordenes')) || [];
         let nextId = localStorage.getItem('nextId') ? parseInt(localStorage.getItem('nextId')) : 1;
 
@@ -274,8 +281,16 @@
             localStorage.setItem('nextId', nextId);
         }
 
+        function esMesActual(fechaStr) {
+            const fecha = new Date(fechaStr);
+            const hoy = new Date();
+            return fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
+        }
+
         function renderizarOrdenes() {
-            ordenesContainer.innerHTML = '';
+            containerActual.innerHTML = '';
+            containerFuturo.innerHTML = '';
+            
             if (ordenes.length === 0) {
                 document.getElementById('mensaje-vacio').style.display = 'block';
                 return;
@@ -285,49 +300,72 @@
             ordenes.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
             ordenes.forEach(orden => {
+                const esMantenimiento = orden.tipo === 'mantenimiento';
                 const card = document.createElement('div');
                 card.className = 'orden-card';
+                
+                const fechaCita = new Date(orden.fecha).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+                
                 card.innerHTML = `
                     <div class="card-header">
                         <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
-                        <span class="programado"><i class="far fa-clock"></i> ${new Date(orden.fecha).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</span>
+                        ${esMantenimiento ? '<span class="tag-mantenimiento">Mantenimiento</span>' : ''}
+                        <span class="programado"><i class="far fa-clock"></i> ${fechaCita}</span>
                     </div>
-                    <div class="info-row">
-                        <i class="fas fa-user"></i>
-                        <span><strong>${orden.cliente}</strong></span>
-                    </div>
-                    <div class="info-row">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${orden.direccion}</span>
-                    </div>
-                    <div class="info-row" style="background:#f1f5f9; padding:15px; border-radius:15px; margin-top:5px;">
-                        <span>${orden.servicio}</span>
-                    </div>
+                    <div class="info-row"><i class="fas fa-user"></i><span><strong>${orden.cliente}</strong></span></div>
+                    <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${orden.direccion}</span></div>
+                    <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
+                    
                     <div class="acciones">
-                        <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm">
-                            <i class="fas fa-paper-plane"></i> Confirmar Cita
+                        <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm"><i class="fas fa-paper-plane"></i> Confirmar</button>
+                        <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i> Chat</a>
+                        
+                        ${esMantenimiento && !esMesActual(orden.fecha) ? `
+                        <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder">
+                            <i class="fas fa-bell"></i> Mensaje de Mantenimiento
+                        </button>` : ''}
+
+                        <button onclick="enviarAlTecnico(${orden.id})" class="btn btn-tecnico">
+                            <i class="fas fa-tools"></i> Enviar al Técnico
                         </button>
-                        <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa">
-                            <i class="fab fa-whatsapp"></i> Business
-                        </a>
-                        <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit">
-                            <i class="fas fa-pen"></i> Editar
-                        </button>
-                        <button onclick="culminarServicio(${orden.id})" class="btn btn-done">
-                            <i class="fas fa-check-circle"></i> Finalizar Trabajo
-                        </button>
+
+                        <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
+                        <button onclick="culminarServicio(${orden.id})" class="btn btn-done"><i class="fas fa-check-circle"></i> Finalizar Trabajo</button>
                     </div>
                 `;
-                ordenesContainer.appendChild(card);
+
+                if (esMesActual(orden.fecha)) {
+                    containerActual.appendChild(card);
+                } else {
+                    containerFuturo.appendChild(card);
+                }
             });
         }
 
         window.enviarConfirmacion = function(id) {
             const orden = ordenes.find(o => o.id === id);
-            if (!orden) return;
             const fecha = new Date(orden.fecha).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-            const msg = `¡Hola ${orden.cliente}! Soy de Crioser Solutions. Confirmamos su servicio para el día ${fecha}. ¿Nos confirma su disponibilidad?`;
+            const msg = `¡Hola ${orden.cliente}! Confirmamos su servicio con Crioser Solutions para el ${fecha}. ¿Nos confirma su disponibilidad?`;
             window.open(`https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        window.enviarRecordatorio = function(id) {
+            const orden = ordenes.find(o => o.id === id);
+            const msg = `Hola ${orden.cliente}, ya hace cuatro meses que hiciste mantenimiento a tu equipo. Recuerda que para extender su vida útil y tener un buen funcionamiento debe ser cada 4 meses. ¿Deseas agendar para esta semana?`;
+            window.open(`https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        window.enviarAlTecnico = function(id) {
+            const orden = ordenes.find(o => o.id === id);
+            const fecha = new Date(orden.fecha).toLocaleString();
+            const msg = `*REPORTE DE SERVICIO - CRIOSER*\n\n` +
+                        `📍 *Cliente:* ${orden.cliente}\n` +
+                        `📞 *Tel:* ${orden.telefono}\n` +
+                        `🏠 *Dir:* ${orden.direccion}\n` +
+                        `⏰ *Fecha:* ${fecha}\n` +
+                        `🛠 *Trabajo:* ${orden.servicio}\n` +
+                        `📋 *Tipo:* ${orden.tipo.toUpperCase()}`;
+            window.open(`https://wa.me/573239053250?text=${encodeURIComponent(msg)}`, '_blank');
         };
 
         form.addEventListener('submit', function(e) {
@@ -336,6 +374,7 @@
             const datos = {
                 cliente: document.getElementById('cliente').value,
                 telefono: document.getElementById('telefono').value,
+                tipo: document.getElementById('tipo-servicio').value,
                 direccion: document.getElementById('direccion').value,
                 servicio: document.getElementById('servicio').value,
                 fecha: document.getElementById('fecha').value
@@ -353,24 +392,38 @@
             document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle"></i> Nueva Orden de Servicio`;
         });
 
+        window.culminarServicio = function(id) {
+            const ordenOriginal = ordenes.find(o => o.id === id);
+            if (confirm("¿Confirmas que el trabajo ha sido finalizado correctamente?")) {
+                if (ordenOriginal.tipo === 'mantenimiento') {
+                    // Generar nueva fecha: +4 meses (aprox 120 días)
+                    const nuevaFecha = new Date(ordenOriginal.fecha);
+                    nuevaFecha.setMonth(nuevaFecha.getMonth() + 4);
+                    
+                    ordenes.push({
+                        ...ordenOriginal,
+                        id: nextId++,
+                        fecha: nuevaFecha.toISOString().slice(0, 16)
+                    });
+                    alert("Servicio finalizado. Se ha agendado automáticamente el próximo mantenimiento para el: " + nuevaFecha.toLocaleDateString());
+                }
+                ordenes = ordenes.filter(o => o.id !== id);
+                guardarDatos();
+                renderizarOrdenes();
+            }
+        };
+
         window.cargarEdicion = function(id) {
             const orden = ordenes.find(o => o.id === id);
             document.getElementById('edit-id').value = orden.id;
             document.getElementById('cliente').value = orden.cliente;
             document.getElementById('telefono').value = orden.telefono;
+            document.getElementById('tipo-servicio').value = orden.tipo || 'mantenimiento';
             document.getElementById('direccion').value = orden.direccion;
             document.getElementById('servicio').value = orden.servicio;
             document.getElementById('fecha').value = orden.fecha;
             document.getElementById('form-title').innerHTML = `<i class="fas fa-pen"></i> Editando OS-${id}`;
             document.getElementById('modulo-registro').scrollIntoView({behavior: 'smooth'});
-        };
-
-        window.culminarServicio = function(id) {
-            if (confirm("¿Confirmas que el trabajo ha sido finalizado correctamente?")) {
-                ordenes = ordenes.filter(o => o.id !== id);
-                guardarDatos();
-                renderizarOrdenes();
-            }
         };
 
         renderizarOrdenes();
