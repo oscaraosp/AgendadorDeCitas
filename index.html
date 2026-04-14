@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crioser Solutions | Gestión Operativa</title>
     
@@ -70,12 +70,25 @@
             gap: 15px;
         }
 
+        /* Estilo para el título colapsable */
+        .collapsible-title {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.3s;
+        }
+        .collapsible-title:hover { color: var(--primary); }
+        .collapsible-title i.chevron { transition: transform 0.3s; font-size: 1.2rem; }
+        .collapsible-title.active i.chevron { transform: rotate(180deg); }
+
         #ordenes-activas, #ordenes-futuras {
             display: grid;
             gap: 25px;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             margin-bottom: 50px;
         }
+
+        /* Ocultar sección futura por defecto */
+        #ordenes-futuras { display: none; margin-top: 20px; }
 
         .orden-card {
             background: var(--white);
@@ -162,6 +175,7 @@
         .btn-reminder { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; grid-column: span 2; }
         .btn-edit { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
         .btn-done { background: var(--success); color: white; grid-column: span 2; }
+        .btn-delete { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
 
         .btn:hover { filter: brightness(0.95); transform: translateY(-2px); }
 
@@ -225,7 +239,10 @@
         </section>
 
         <section class="tab-section">
-            <h2><i class="fas fa-history"></i> Programados a Futuro (Mantenimientos)</h2>
+            <h2 class="collapsible-title" onclick="toggleFuturo()">
+                <i class="fas fa-history"></i> Programados a Futuro (Mantenimientos) 
+                <i class="fas fa-chevron-down chevron" style="margin-left:auto;"></i>
+            </h2>
             <div id="ordenes-futuras"></div>
         </section>
 
@@ -281,10 +298,25 @@
             localStorage.setItem('nextId', nextId);
         }
 
-        function esMesActual(fechaStr) {
+        // Lógica para detectar si la fecha pertenece al mes actual o ya pasó
+        function esMesActualOAnterior(fechaStr) {
             const fecha = new Date(fechaStr);
             const hoy = new Date();
-            return fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
+            // Comparamos año y mes. Si es el mismo mes o un mes/año anterior, se muestra en la lista principal.
+            return (fecha.getFullYear() < hoy.getFullYear()) || 
+                   (fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() <= hoy.getMonth());
+        }
+
+        function toggleFuturo() {
+            const div = document.getElementById('ordenes-futuras');
+            const title = document.querySelector('.collapsible-title');
+            if (div.style.display === 'grid') {
+                div.style.display = 'none';
+                title.classList.remove('active');
+            } else {
+                div.style.display = 'grid';
+                title.classList.add('active');
+            }
         }
 
         function renderizarOrdenes() {
@@ -305,7 +337,8 @@
                 card.className = 'orden-card';
                 
                 const fechaCita = new Date(orden.fecha).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
-                
+                const mostrarEnActual = esMesActualOAnterior(orden.fecha);
+
                 card.innerHTML = `
                     <div class="card-header">
                         <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
@@ -317,30 +350,40 @@
                     <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
                     
                     <div class="acciones">
-                        <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm"><i class="fas fa-paper-plane"></i> Confirmar</button>
-                        <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i> Chat</a>
-                        
-                        ${esMantenimiento && !esMesActual(orden.fecha) ? `
-                        <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder">
-                            <i class="fas fa-bell"></i> Mensaje de Mantenimiento
-                        </button>` : ''}
-
-                        <button onclick="enviarAlTecnico(${orden.id})" class="btn btn-tecnico">
-                            <i class="fas fa-tools"></i> Enviar al Técnico
-                        </button>
-
-                        <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
-                        <button onclick="culminarServicio(${orden.id})" class="btn btn-done"><i class="fas fa-check-circle"></i> Finalizar Trabajo</button>
+                        ${mostrarEnActual ? `
+                            <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm"><i class="fas fa-paper-plane"></i> Confirmar</button>
+                            <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i> Chat</a>
+                            <button onclick="enviarAlTecnico(${orden.id})" class="btn btn-tecnico"><i class="fas fa-tools"></i> Enviar al Técnico</button>
+                            <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
+                            <button onclick="culminarServicio(${orden.id})" class="btn btn-done"><i class="fas fa-check-circle"></i> Finalizar Trabajo</button>
+                        ` : `
+                            <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder"><i class="fas fa-bell"></i> Recordatorio</button>
+                            <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
+                            <button onclick="eliminarServicio(${orden.id})" class="btn btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+                        `}
                     </div>
                 `;
 
-                if (esMesActual(orden.fecha)) {
+                if (mostrarEnActual) {
                     containerActual.appendChild(card);
                 } else {
                     containerFuturo.appendChild(card);
                 }
             });
+
+            // Si no hay nada a futuro, avisar dentro del colapsable
+            if (containerFuturo.innerHTML === '') {
+                containerFuturo.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">No hay mantenimientos programados para meses posteriores.</p>';
+            }
         }
+
+        window.eliminarServicio = function(id) {
+            if (confirm("¿Estás seguro de que deseas eliminar este servicio programado? Esta acción no se puede deshacer.")) {
+                ordenes = ordenes.filter(o => o.id !== id);
+                guardarDatos();
+                renderizarOrdenes();
+            }
+        };
 
         window.enviarConfirmacion = function(id) {
             const orden = ordenes.find(o => o.id === id);
@@ -351,7 +394,7 @@
 
         window.enviarRecordatorio = function(id) {
             const orden = ordenes.find(o => o.id === id);
-            const msg = `Hola ${orden.cliente}, ya hace cuatro meses que hiciste mantenimiento a tu equipo. Recuerda que para extender su vida útil y tener un buen funcionamiento debe ser cada 4 meses. ¿Deseas agendar para esta semana?`;
+            const msg = `Hola ${orden.cliente}, le saludamos de Crioser Solutions. Recordamos que su equipo está próximo a mantenimiento. ¿Desea confirmar la fecha programada?`;
             window.open(`https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
         };
 
@@ -396,7 +439,6 @@
             const ordenOriginal = ordenes.find(o => o.id === id);
             if (confirm("¿Confirmas que el trabajo ha sido finalizado correctamente?")) {
                 if (ordenOriginal.tipo === 'mantenimiento') {
-                    // Generar nueva fecha: +4 meses (aprox 120 días)
                     const nuevaFecha = new Date(ordenOriginal.fecha);
                     nuevaFecha.setMonth(nuevaFecha.getMonth() + 4);
                     
@@ -405,7 +447,7 @@
                         id: nextId++,
                         fecha: nuevaFecha.toISOString().slice(0, 16)
                     });
-                    alert("Servicio finalizado. Se ha agendado automáticamente el próximo mantenimiento para el: " + nuevaFecha.toLocaleDateString());
+                    alert("Servicio finalizado. Se ha agendado automáticamente para: " + nuevaFecha.toLocaleDateString());
                 }
                 ordenes = ordenes.filter(o => o.id !== id);
                 guardarDatos();
