@@ -80,15 +80,15 @@
         .collapsible-title i.chevron { transition: transform 0.3s; font-size: 1.2rem; }
         .collapsible-title.active i.chevron { transform: rotate(180deg); }
 
-        #ordenes-activas, #ordenes-futuras {
+        #ordenes-activas, #ordenes-futuras, #ordenes-mes-general {
             display: grid;
             gap: 25px;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             margin-bottom: 50px;
         }
 
-        /* Ocultar sección futura por defecto */
-        #ordenes-futuras { display: none; margin-top: 20px; }
+        /* Ocultar secciones colapsables por defecto */
+        #ordenes-futuras, #ordenes-mes-general { display: none; margin-top: 20px; }
 
         .orden-card {
             background: var(--white);
@@ -173,6 +173,7 @@
         .btn-wa { background: #e8faf0; color: var(--whatsapp); border: 1px solid rgba(37, 211, 102, 0.1); }
         .btn-tecnico { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; grid-column: span 2; }
         .btn-reminder { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; grid-column: span 2; }
+        .btn-check-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; grid-column: span 2; }
         .btn-edit { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
         .btn-done { background: var(--success); color: white; grid-column: span 2; }
         .btn-delete { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
@@ -239,7 +240,15 @@
         </section>
 
         <section class="tab-section">
-            <h2 class="collapsible-title" onclick="toggleFuturo()">
+            <h2 class="collapsible-title" onclick="toggleSeccion('ordenes-mes-general', this)">
+                <i class="fas fa-calendar-alt"></i> Todos los Servicios del Mes (Con Recordatorio / Pendientes de Confirmar) 
+                <i class="fas fa-chevron-down chevron" style="margin-left:auto;"></i>
+            </h2>
+            <div id="ordenes-mes-general"></div>
+        </section>
+
+        <section class="tab-section">
+            <h2 class="collapsible-title" onclick="toggleSeccion('ordenes-futuras', this)">
                 <i class="fas fa-history"></i> Programados a Futuro (Mantenimientos) 
                 <i class="fas fa-chevron-down chevron" style="margin-left:auto;"></i>
             </h2>
@@ -289,6 +298,7 @@
     <script>
         const form = document.getElementById('form-servicio');
         const containerActual = document.getElementById('ordenes-activas');
+        const containerMesGeneral = document.getElementById('ordenes-mes-general');
         const containerFuturo = document.getElementById('ordenes-futuras');
         let ordenes = JSON.parse(localStorage.getItem('ordenes')) || [];
         let nextId = localStorage.getItem('nextId') ? parseInt(localStorage.getItem('nextId')) : 1;
@@ -302,25 +312,31 @@
         function esMesActualOAnterior(fechaStr) {
             const fecha = new Date(fechaStr);
             const hoy = new Date();
-            // Comparamos año y mes. Si es el mismo mes o un mes/año anterior, se muestra en la lista principal.
             return (fecha.getFullYear() < hoy.getFullYear()) || 
                    (fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() <= hoy.getMonth());
         }
 
-        function toggleFuturo() {
-            const div = document.getElementById('ordenes-futuras');
-            const title = document.querySelector('.collapsible-title');
+        // Lógica para saber si la orden pertenece exactamente al mes actual en curso
+        function esDelMesActual(fechaStr) {
+            const fecha = new Date(fechaStr);
+            const hoy = new Date();
+            return fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() === hoy.getMonth();
+        }
+
+        function toggleSeccion(idContenedor, elementoTitulo) {
+            const div = document.getElementById(idContenedor);
             if (div.style.display === 'grid') {
                 div.style.display = 'none';
-                title.classList.remove('active');
+                elementoTitulo.classList.remove('active');
             } else {
                 div.style.display = 'grid';
-                title.classList.add('active');
+                elementoTitulo.classList.add('active');
             }
         }
 
         function renderizarOrdenes() {
             containerActual.innerHTML = '';
+            containerMesGeneral.innerHTML = '';
             containerFuturo.innerHTML = '';
             
             if (ordenes.length === 0) {
@@ -331,6 +347,8 @@
 
             ordenes.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
+            let contadorMesGeneral = 0;
+
             ordenes.forEach(orden => {
                 const esMantenimiento = orden.tipo === 'mantenimiento';
                 const card = document.createElement('div');
@@ -338,45 +356,99 @@
                 
                 const fechaCita = new Date(orden.fecha).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
                 const mostrarEnActual = esMesActualOAnterior(orden.fecha);
+                const perteneceMesActual = esDelMesActual(orden.fecha);
+                const estaForzadoActual = orden.forzarActivo === true;
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
-                        ${esMantenimiento ? '<span class="tag-mantenimiento">Mantenimiento</span>' : ''}
-                        <span class="programado"><i class="far fa-clock"></i> ${fechaCita}</span>
-                    </div>
-                    <div class="info-row"><i class="fas fa-user"></i><span><strong>${orden.cliente}</strong></span></div>
-                    <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${orden.direccion}</span></div>
-                    <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
-                    
-                    <div class="acciones">
-                        ${mostrarEnActual ? `
+                // Estructura de la tarjeta para Servicios Actuales del Mes
+                if (mostrarEnActual || estaForzadoActual) {
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
+                            ${esMantenimiento ? '<span class="tag-mantenimiento">Mantenimiento</span>' : ''}
+                            <span class="programado"><i class="far fa-clock"></i> ${fechaCita}</span>
+                        </div>
+                        <div class="info-row"><i class="fas fa-user"></i><span><strong>${orden.cliente}</strong></span></div>
+                        <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${orden.direccion}</span></div>
+                        <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
+                        
+                        <div class="acciones">
                             <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm"><i class="fas fa-paper-plane"></i> Confirmar</button>
                             <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i> Chat</a>
                             <button onclick="enviarAlTecnico(${orden.id})" class="btn btn-tecnico"><i class="fas fa-tools"></i> Enviar al Técnico</button>
-                            <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder"><i class="fas fa-bell"></i> Recordatorio</button>
                             <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
                             <button onclick="culminarServicio(${orden.id})" class="btn btn-done"><i class="fas fa-check-circle"></i> Finalizar Trabajo</button>
-                        ` : `
+                        </div>
+                    `;
+                    containerActual.appendChild(card);
+                } 
+                
+                // Estructura para el apartado general de todos los servicios del mes con su recordatorio y botón de chulo verde
+                if (perteneceMesActual) {
+                    contadorMesGeneral++;
+                    const cardMes = document.createElement('div');
+                    cardMes.className = 'orden-card';
+                    cardMes.innerHTML = `
+                        <div class="card-header">
+                            <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
+                            ${esMantenimiento ? '<span class="tag-mantenimiento">Mantenimiento</span>' : ''}
+                            <span class="programado"><i class="far fa-clock"></i> ${fechaCita}</span>
+                        </div>
+                        <div class="info-row"><i class="fas fa-user"></i><span><strong>${orden.cliente}</strong></span></div>
+                        <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${orden.direccion}</span></div>
+                        <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
+                        
+                        <div class="acciones">
+                            <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder"><i class="fas fa-bell"></i> Recordatorio</button>
+                            <button onclick="marcarComoActivo(${orden.id})" class="btn btn-check-green"><i class="fas fa-check"></i> Confirmar Disponibilidad</button>
+                            <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
+                            <button onclick="eliminarServicio(${orden.id})" class="btn btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                    `;
+                    containerMesGeneral.appendChild(cardMes);
+                }
+
+                // Estructura para Programados a Futuro (meses posteriores)
+                if (!mostrarEnActual && !estaForzadoActual) {
+                    const cardFuturo = document.createElement('div');
+                    cardFuturo.className = 'orden-card';
+                    cardFuturo.innerHTML = `
+                        <div class="card-header">
+                            <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
+                            ${esMantenimiento ? '<span class="tag-mantenimiento">Mantenimiento</span>' : ''}
+                            <span class="programado"><i class="far fa-clock"></i> ${fechaCita}</span>
+                        </div>
+                        <div class="info-row"><i class="fas fa-user"></i><span><strong>${orden.cliente}</strong></span></div>
+                        <div class="info-row"><i class="fas fa-map-marker-alt"></i><span>${orden.direccion}</span></div>
+                        <div class="info-row" style="background:#f1f5f9; padding:12px; border-radius:12px;"><span>${orden.servicio}</span></div>
+                        
+                        <div class="acciones">
                             <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder"><i class="fas fa-bell"></i> Recordatorio</button>
                             <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
                             <button onclick="eliminarServicio(${orden.id})" class="btn btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
-                        `}
-                    </div>
-                `;
-
-                if (mostrarEnActual) {
-                    containerActual.appendChild(card);
-                } else {
-                    containerFuturo.appendChild(card);
+                        </div>
+                    `;
+                    containerFuturo.appendChild(cardFuturo);
                 }
             });
 
-            // Si no hay nada a futuro, avisar dentro del colapsable
             if (containerFuturo.innerHTML === '') {
                 containerFuturo.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">No hay mantenimientos programados para meses posteriores.</p>';
             }
+
+            if (contadorMesGeneral === 0) {
+                containerMesGeneral.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">No hay servicios registrados para este mes.</p>';
+            }
         }
+
+        window.marcarComoActivo = function(id) {
+            const orden = ordenes.find(o => o.id === id);
+            if (orden) {
+                orden.forzarActivo = true;
+                guardarDatos();
+                renderizarOrdenes();
+                alert(`El servicio de ${orden.cliente} ha sido confirmado y ahora aparece en los Servicios del Mes Actual.`);
+            }
+        };
 
         window.eliminarServicio = function(id) {
             if (confirm("¿Estás seguro de que deseas eliminar este servicio programado? Esta acción no se puede deshacer.")) {
@@ -446,7 +518,8 @@
                     ordenes.push({
                         ...ordenOriginal,
                         id: nextId++,
-                        fecha: nuevaFecha.toISOString().slice(0, 16)
+                        fecha: nuevaFecha.toISOString().slice(0, 16),
+                        forzarActivo: false
                     });
                     alert("Servicio finalizado. Se ha agendado automáticamente para: " + nuevaFecha.toLocaleDateString());
                 }
