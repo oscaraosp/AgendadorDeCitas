@@ -354,6 +354,7 @@
                             <button onclick="enviarConfirmacion(${orden.id})" class="btn btn-confirm"><i class="fas fa-paper-plane"></i> Confirmar</button>
                             <a href="https://wa.me/${orden.telefono.replace(/\D/g,'')}" target="_blank" class="btn btn-wa"><i class="fab fa-whatsapp"></i> Chat</a>
                             <button onclick="enviarAlTecnico(${orden.id})" class="btn btn-tecnico"><i class="fas fa-tools"></i> Enviar al Técnico</button>
+                            <button onclick="enviarRecordatorio(${orden.id})" class="btn btn-reminder"><i class="fas fa-bell"></i> Recordatorio</button>
                             <button onclick="cargarEdicion(${orden.id})" class="btn btn-edit"><i class="fas fa-pen"></i> Editar</button>
                             <button onclick="culminarServicio(${orden.id})" class="btn btn-done"><i class="fas fa-check-circle"></i> Finalizar Trabajo</button>
                         ` : `
@@ -394,7 +395,7 @@
 
         window.enviarRecordatorio = function(id) {
             const orden = ordenes.find(o => o.id === id);
-            const msg = `Hola ${orden.cliente}, le saludamos de Crioser Solutions. Recordamos que su equipo está próximo a mantenimiento. ¿Desea confirmar la fecha programada?`;
+            const msg = `Hola ${orden.cliente}, le saludamos de Crioser Solutions. Recordamos que su equipo está próximo a mantenimiento. ¿Desea programar su mantenimiento para esta semana?`;
             window.open(`https://wa.me/${orden.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
         };
 
