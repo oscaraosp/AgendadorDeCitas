@@ -308,19 +308,19 @@
             localStorage.setItem('nextId', nextId);
         }
 
-        // Lógica para detectar si la fecha pertenece al mes actual o ya pasó
-        function esMesActualOAnterior(fechaStr) {
-            const fecha = new Date(fechaStr);
-            const hoy = new Date();
-            return (fecha.getFullYear() < hoy.getFullYear()) || 
-                   (fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() <= hoy.getMonth());
-        }
-
         // Lógica para saber si la orden pertenece exactamente al mes actual en curso
         function esDelMesActual(fechaStr) {
             const fecha = new Date(fechaStr);
             const hoy = new Date();
             return fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() === hoy.getMonth();
+        }
+
+        // Lógica para saber si la orden es de un mes anterior al actual
+        function esDeMesAnterior(fechaStr) {
+            const fecha = new Date(fechaStr);
+            const hoy = new Date();
+            return (fecha.getFullYear() < hoy.getFullYear()) || 
+                   (fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() < hoy.getMonth());
         }
 
         function toggleSeccion(idContenedor, elementoTitulo) {
@@ -355,12 +355,14 @@
                 card.className = 'orden-card';
                 
                 const fechaCita = new Date(orden.fecha).toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
-                const mostrarEnActual = esMesActualOAnterior(orden.fecha);
                 const perteneceMesActual = esDelMesActual(orden.fecha);
+                const esAnterior = esDeMesAnterior(orden.fecha);
                 const estaForzadoActual = orden.forzarActivo === true;
 
-                // Estructura de la tarjeta para Servicios Actuales del Mes
-                if (mostrarEnActual || estaForzadoActual) {
+                // 1. Servicios del Mes Actual (Aparecen aquí si son del mes actual Y ya se confirmó, O si son de meses anteriores pero se forzó la activación)
+                const mostrarEnActual = (perteneceMesActual && estaForzadoActual) || (esAnterior && estaForzadoActual);
+                
+                if (mostrarEnActual) {
                     card.innerHTML = `
                         <div class="card-header">
                             <span class="os-id">OS-${String(orden.id).padStart(4, '0')}</span>
@@ -382,8 +384,10 @@
                     containerActual.appendChild(card);
                 } 
                 
-                // Estructura para el apartado general de todos los servicios del mes con su recordatorio y botón de chulo verde
-                if (perteneceMesActual) {
+                // 2. Todos los Servicios del Mes (Pendientes de Confirmar / Con Recordatorio): 
+                // SOLO aparecen aquí si pertenecen al mes actual en curso Y aún NO se ha hecho clic en "Confirmar Disponibilidad" (!estaForzadoActual). 
+                // Los meses pasados ya no muestran nada aquí.
+                if (perteneceMesActual && !estaForzadoActual) {
                     contadorMesGeneral++;
                     const cardMes = document.createElement('div');
                     cardMes.className = 'orden-card';
@@ -407,8 +411,9 @@
                     containerMesGeneral.appendChild(cardMes);
                 }
 
-                // Estructura para Programados a Futuro (meses posteriores)
-                if (!mostrarEnActual && !estaForzadoActual) {
+                // 3. Programados a Futuro (meses posteriores)
+                const esFuturo = !perteneceMesActual && !esAnterior;
+                if (esFuturo) {
                     const cardFuturo = document.createElement('div');
                     cardFuturo.className = 'orden-card';
                     cardFuturo.innerHTML = `
@@ -436,7 +441,7 @@
             }
 
             if (contadorMesGeneral === 0) {
-                containerMesGeneral.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">No hay servicios registrados para este mes.</p>';
+                containerMesGeneral.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">No hay servicios pendientes de confirmar para este mes.</p>';
             }
         }
 
