@@ -308,14 +308,12 @@
             localStorage.setItem('nextId', nextId);
         }
 
-        // Lógica para saber si la orden pertenece exactamente al mes actual en curso
         function esDelMesActual(fechaStr) {
             const fecha = new Date(fechaStr);
             const hoy = new Date();
             return fecha.getFullYear() === hoy.getFullYear() && fecha.getMonth() === hoy.getMonth();
         }
 
-        // Lógica para saber si la orden es de un mes anterior al actual
         function esDeMesAnterior(fechaStr) {
             const fecha = new Date(fechaStr);
             const hoy = new Date();
@@ -359,7 +357,6 @@
                 const esAnterior = esDeMesAnterior(orden.fecha);
                 const estaForzadoActual = orden.forzarActivo === true;
 
-                // 1. Servicios del Mes Actual (Aparecen aquí si son del mes actual Y ya se confirmó, O si son de meses anteriores pero se forzó la activación)
                 const mostrarEnActual = (perteneceMesActual && estaForzadoActual) || (esAnterior && estaForzadoActual);
                 
                 if (mostrarEnActual) {
@@ -384,9 +381,6 @@
                     containerActual.appendChild(card);
                 } 
                 
-                // 2. Todos los Servicios del Mes (Pendientes de Confirmar / Con Recordatorio): 
-                // SOLO aparecen aquí si pertenecen al mes actual en curso Y aún NO se ha hecho clic en "Confirmar Disponibilidad" (!estaForzadoActual). 
-                // Los meses pasados ya no muestran nada aquí.
                 if (perteneceMesActual && !estaForzadoActual) {
                     contadorMesGeneral++;
                     const cardMes = document.createElement('div');
@@ -411,7 +405,6 @@
                     containerMesGeneral.appendChild(cardMes);
                 }
 
-                // 3. Programados a Futuro (meses posteriores)
                 const esFuturo = !perteneceMesActual && !esAnterior;
                 if (esFuturo) {
                     const cardFuturo = document.createElement('div');
