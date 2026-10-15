@@ -34,7 +34,9 @@
                 radial-gradient(at 100% 100%, rgba(0, 209, 255, 0.08) 0px, transparent 50%);
             color: var(--dark);
             min-height: 100vh;
+            min-height: 100dvh; /* Solución para la barra dinámica de Safari en iPhone */
             padding-bottom: 100px;
+            overflow-x: hidden; /* Evita desbordamiento horizontal en iOS */
         }
 
         header {
@@ -58,7 +60,12 @@
             letter-spacing: -1px;
         }
 
-        .container { max-width: 1250px; margin: 0 auto; padding: 40px 20px; }
+        .container { 
+            max-width: 1250px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            width: 100%;
+        }
 
         h2 {
             font-family: 'Outfit', sans-serif;
@@ -83,7 +90,7 @@
         #ordenes-activas, #ordenes-futuras, #ordenes-mes-general {
             display: grid;
             gap: 25px;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: 1fr; /* Una columna en celulares y móviles de iOS por defecto */
             margin-bottom: 50px;
         }
 
@@ -215,6 +222,14 @@
         }
 
         .tab-section { margin-top: 40px; border-top: 2px solid #e2e8f0; padding-top: 40px; }
+
+        /* Media queries para pantallas medianas y ordenadores */
+        @media (min-width: 768px) {
+            #ordenes-activas, #ordenes-futuras, #ordenes-mes-general {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
 
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
